@@ -275,14 +275,12 @@ class Message
 
 		$messages = $client->fetch($imap->getMailboxName(), $messageNum, $isUid, ['BODYSTRUCTURE']);
 
-		if (empty($messages))
+		if (! empty($messages))
 			{
-			return false;
-			}
-
-		foreach ($messages as $message)
-			{
-			return \PHPFUI\Imap2\BodyStructure::fromMessage($message);
+			foreach ($messages as $message)
+				{
+				return \PHPFUI\Imap2\BodyStructure::fromMessage($message);
+				}
 			}
 
 		return false;
@@ -317,14 +315,12 @@ class Message
 			'RFC822.HEADER'
 		]);
 
-		if (empty($messages))
+		if (count($messages))
 			{
-			return false;
-			}
-
-		foreach ($messages as $message)
-			{
-			return \PHPFUI\Imap2\HeaderInfo::fromMessage($message, $defaultHost);
+			foreach ($messages as $message)
+				{
+				return \PHPFUI\Imap2\HeaderInfo::fromMessage($message, $defaultHost);
+				}
 			}
 
 		return false;
@@ -474,7 +470,7 @@ class Message
 		return $client->flag($imap->getMailboxName(), $sequence, \strtoupper(\substr($flag, 1)));
 		}
 
-	public static function sort(\IMAP\Connection $imap, $criteria, $reverse, int $flags = 0, $searchCriteria = null, ?string $charset = null) : string | false
+	public static function sort(\IMAP\Connection $imap, $criteria, $reverse, int $flags = 0, $searchCriteria = null, ?string $charset = null) : array | false
 		{
 		$client = $imap->getClient();
 

@@ -525,14 +525,6 @@ if (! \function_exists('imap_getsubscribed'))
 		}
   }
 
-if (! \function_exists('imap_header'))
-  {
-  function imap_header(\IMAP\Connection $imap, int $message_num, int $from_length = 0, int $subject_length = 0) : \stdClass|false
-		{
-		return \PHPFUI\Imap2\Message::headerInfo($imap, $message_num, $from_length, $subject_length);
-		}
-  }
-
 if (! \function_exists('imap_headerinfo'))
   {
   function imap_headerinfo(\IMAP\Connection $imap, int $message_num, int $from_length = 0, int $subject_length = 0) : \stdClass|false
@@ -543,7 +535,7 @@ if (! \function_exists('imap_headerinfo'))
 
 if (! \function_exists('imap_headers'))
   {
-  function imap_headers(\IMAP\Connection $imap) : array|false
+  function imap_headers(\IMAP\Connection $imap) : array
 		{
 		return \PHPFUI\Imap2\Message::headers($imap);
 		}
@@ -559,7 +551,7 @@ if (! \function_exists('imap_last_error'))
 
 if (! \function_exists('imap_list'))
   {
-  function imap_list(\IMAP\Connection $imap, string $reference, string $pattern) : array|false
+  function imap_list(\IMAP\Connection $imap, string $reference, string $pattern) : array
 		{
 		return \PHPFUI\Imap2\Mailbox::list($imap, $reference, $pattern);
 		}
@@ -567,7 +559,7 @@ if (! \function_exists('imap_list'))
 
 if (! \function_exists('imap_listmailbox'))
   {
-  function imap_listmailbox(\IMAP\Connection $imap, string $reference, string $pattern) : array|false
+  function imap_listmailbox(\IMAP\Connection $imap, string $reference, string $pattern) : array
 		{
 		return \PHPFUI\Imap2\Mailbox::list($imap, $reference, $pattern);
 		}
@@ -575,28 +567,28 @@ if (! \function_exists('imap_listmailbox'))
 
 if (! \function_exists('imap_listscan'))
   {
-  function imap_listscan(\IMAP\Connection $imap, string $reference, string $pattern, string $content) : array|false
+  function imap_listscan(\IMAP\Connection $imap, string $reference, string $pattern, string $content) : array
 		{
 		return \PHPFUI\Imap2\Mailbox::listScan($imap, $reference, $pattern);
 		}
 	}
 
-if (! \function_exists('imap_listsubscribed'))
-  {
-  function imap_listsubscribed(\IMAP\Connection $imap, string $reference, string $pattern) : array|false
-		{
-		return \PHPFUI\Imap2\Mailbox::listSubscribed($imap, $reference);
-		}
-  }
-
-if (! \function_exists('imap_lsub'))
-  {
-  function imap_lsub(\IMAP\Connection $imap, string $reference, string $pattern) : array|false
-		{
-		return \PHPFUI\Imap2\Mailbox::listSubscribed($imap, $reference);
-		}
-  }
-
+//if (! \function_exists('imap_listsubscribed'))
+//  {
+//  function imap_listsubscribed(\IMAP\Connection $imap, string $reference, string $pattern) : array|false
+//		{
+//		return \PHPFUI\Imap2\Mailbox::listSubscribed($imap, $reference);
+//		}
+//  }
+//
+//if (! \function_exists('imap_lsub'))
+//  {
+//  function imap_lsub(\IMAP\Connection $imap, string $reference, string $pattern) : array|false
+//		{
+//		return \PHPFUI\Imap2\Mailbox::listSubscribed($imap, $reference);
+//		}
+//  }
+//
 //if (! \function_exists('imap_mail'))
 //  {
 //  function imap_mail(string $to, string $subject, string $message, ?string $additional_headers = null, ?string $cc = null, ?string $bcc = null, ?string $return_path = null) : bool
@@ -663,7 +655,7 @@ if (! \function_exists('imap_mutf7_to_utf8'))
 
 if (! \function_exists('imap_num_msg'))
   {
-  function imap_num_msg(\IMAP\Connection $imap) : int|false
+  function imap_num_msg(\IMAP\Connection $imap) : int
 		{
 		return \PHPFUI\Imap2\Mailbox::numMsg($imap);
 		}
@@ -798,7 +790,7 @@ if (! \function_exists('imap_savebody'))
 
 if (! \function_exists('imap_scan'))
   {
-  function imap_scan(\IMAP\Connection $imap, string $reference, string $pattern, string $content) : array|false
+  function imap_scan(\IMAP\Connection $imap, string $reference, string $pattern, string $content) : array
 		{
 		return \PHPFUI\Imap2\Mailbox::listScan($imap, $reference, $pattern);
 		}
@@ -806,7 +798,7 @@ if (! \function_exists('imap_scan'))
 
 if (! \function_exists('imap_scanmailbox'))
   {
-  function imap_scanmailbox(\IMAP\Connection $imap, string $reference, string $pattern, string $content) : array|false
+  function imap_scanmailbox(\IMAP\Connection $imap, string $reference, string $pattern, string $content) : array
 		{
 		return \PHPFUI\Imap2\Mailbox::listScan($imap, $reference, $pattern);
 		}

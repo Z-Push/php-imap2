@@ -1247,9 +1247,10 @@ class ImapClient
 	{
 		$a = $this->fetchHeaders($mailbox, $id, $is_uid, $bodystr, $add_headers);
 
-		if (\is_array($a)) {
+		if (\is_array($a))
+			{
 			return \array_shift($a);
-		}
+			}
 
 		return false;
 	}
@@ -1307,48 +1308,59 @@ class ImapClient
 		$fields_a['RECENT'] = 3;
 		$fields_a['DELETED'] = 3;
 
-		if (! ($mode = $fields_a[$index_field])) {
+		if (! ($mode = $fields_a[$index_field]))
+			{
 			return false;
-		}
+			}
 
 		//  Select the mailbox
-		if (! $this->select($mailbox)) {
+		if (! $this->select($mailbox))
+			{
 			return false;
-		}
+			}
 
 		// build FETCH command string
 		$key = $this->nextTag();
 		$cmd = $uidfetch ? 'UID FETCH' : 'FETCH';
 		$fields = [];
 
-		if ($return_uid) {
+		if ($return_uid)
+			{
 			$fields[] = 'UID';
-		}
+			}
 
-		if ($skip_deleted) {
+		if ($skip_deleted)
+			{
 			$fields[] = 'FLAGS';
-		}
+			}
 
-		if (1 == $mode) {
-			if ('DATE' == $index_field) {
+		if (1 == $mode)
+			{
+			if ('DATE' == $index_field)
+				{
 				$fields[] = 'INTERNALDATE';
-			}
+				}
 			$fields[] = "BODY.PEEK[HEADER.FIELDS ({$index_field})]";
-		}
-		elseif (2 == $mode) {
-			if ('SIZE' == $index_field) {
+			}
+		elseif (2 == $mode)
+			{
+			if ('SIZE' == $index_field)
+				{
 				$fields[] = 'RFC822.SIZE';
-			}
-			elseif (! $return_uid || 'UID' != $index_field) {
+				}
+			elseif (! $return_uid || 'UID' != $index_field)
+				{
 				$fields[] = $index_field;
+				}
 			}
-		}
-		elseif (3 == $mode && ! $skip_deleted) {
+		elseif (3 == $mode && ! $skip_deleted)
+			{
 			$fields[] = 'FLAGS';
-		}
-		elseif (4 == $mode) {
+			}
+		elseif (4 == $mode)
+			{
 			$fields[] = 'INTERNALDATE';
-		}
+			}
 
 		$request = "{$key} {$cmd} {$message_set} (" . \implode(' ', $fields) . ')';
 

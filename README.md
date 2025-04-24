@@ -22,6 +22,8 @@ The following functions were not implemented in the original source and will be 
 * function imap_mail_compose(array $envelope, array $bodies) : string|false
 * function imap_mime_header_decode(string $string) : array
 * function imap_set_quota(IMAP\Connection $imap,string $quota_root): array|false
+* function imap_listsubscribed(\IMAP\Connection $imap, string $reference, string $pattern) : array|false
+* function imap_lsub(\IMAP\Connection $imap, string $reference, string $pattern) : array|false
 
 The following functions have no effect:
 
