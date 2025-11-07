@@ -273,6 +273,37 @@ class ImapClient
 	}
 
 	/**
+	 * Clear internal cache of the current mailbox
+	 */
+	public function clear_mailbox_cache() : void
+		{
+		$this->clear_status_cache($this->selected);
+
+		$keys = ['UIDNEXT', 'UIDVALIDITY', 'HIGHESTMODSEQ', 'NOMODSEQ',
+			'PERMANENTFLAGS', 'QRESYNC', 'VANISHED', 'READ-WRITE'];
+
+		foreach ($keys as $key)
+			{
+			unset($this->data[$key]);
+			}
+		}
+
+	/**
+	 * Clear internal status cache
+	 */
+	public function clear_status_cache(string $mailbox = '') : void
+		{
+		unset($this->data['STATUS:' . $mailbox]);
+
+		$keys = ['EXISTS', 'RECENT', 'UNSEEN', 'UID-MAP'];
+
+		foreach ($keys as $key)
+			{
+			unset($this->data[$key]);
+			}
+		}
+
+	/**
 	 * Clears detected server capabilities
 	 */
 	public function clearCapability() : void
@@ -3795,37 +3826,6 @@ class ImapClient
 
 		return $this->setError($result, "AUTHENTICATE {$type}: {$line}");
 	}
-
-	/**
-	 * Clear internal cache of the current mailbox
-	 */
-	protected function clear_mailbox_cache() : void
-		{
-		$this->clear_status_cache($this->selected);
-
-		$keys = ['UIDNEXT', 'UIDVALIDITY', 'HIGHESTMODSEQ', 'NOMODSEQ',
-			'PERMANENTFLAGS', 'QRESYNC', 'VANISHED', 'READ-WRITE'];
-
-		foreach ($keys as $key)
-			{
-			unset($this->data[$key]);
-			}
-		}
-
-	/**
-	 * Clear internal status cache
-	 */
-	protected function clear_status_cache(string $mailbox = '') : void
-		{
-		unset($this->data['STATUS:' . $mailbox]);
-
-		$keys = ['EXISTS', 'RECENT', 'UNSEEN', 'UID-MAP'];
-
-		foreach ($keys as $key)
-			{
-			unset($this->data[$key]);
-			}
-		}
 
 	/**
 	 * Closes connection stream.

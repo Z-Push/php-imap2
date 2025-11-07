@@ -322,7 +322,7 @@ if (! \function_exists('imap_body'))
   {
   function imap_body(\IMAP\Connection $imap, int $message_num, int $flags = 0) : string|false
 		{
-		return \PHPFUI\Imap2\Message::body($imap, $message_num, $flags);
+		return \PHPFUI\Imap2\Message::body($imap, "{$message_num}", $flags);
 		}
   }
 
@@ -330,7 +330,7 @@ if (! \function_exists('imap_bodystruct'))
   {
   function imap_bodystruct(\IMAP\Connection $imap, int $message_num, string $section) : \stdClass|false
 	{
-	return \PHPFUI\Imap2\Message::bodyStruct($imap, $message_num, $section);
+	return \PHPFUI\Imap2\Message::bodyStruct($imap, "{$message_num}", $section);
 	}
   }
 
@@ -420,7 +420,7 @@ if (! \function_exists('imap_fetchbody'))
   {
   function imap_fetchbody(\IMAP\Connection $imap, int $message_num, string $section, int $flags = 0) : string|false
 		{
-		return \PHPFUI\Imap2\Message::fetchBody($imap, $message_num, $section, $flags);
+		return \PHPFUI\Imap2\Message::fetchBody($imap, "{$message_num}", $section, $flags);
 		}
   }
 
@@ -428,7 +428,7 @@ if (! \function_exists('imap_fetchheader'))
   {
   function imap_fetchheader(\IMAP\Connection $imap, int $message_num, int $flags = 0) : string|false
 		{
-		return \PHPFUI\Imap2\Message::fetchHeader($imap, $message_num, $flags);
+		return \PHPFUI\Imap2\Message::fetchHeader($imap, "{$message_num}", $flags);
 		}
   }
 
@@ -444,7 +444,7 @@ if (! \function_exists('imap_fetchstructure'))
   {
   function imap_fetchstructure(\IMAP\Connection $imap, int $message_num, int $flags = 0) : \stdClass|false
 		{
-		return \PHPFUI\Imap2\Message::fetchStructure($imap, $message_num, $flags);
+		return \PHPFUI\Imap2\Message::fetchStructure($imap, "{$message_num}", $flags);
 		}
   }
 
@@ -452,7 +452,7 @@ if (! \function_exists('imap_fetchtext'))
   {
   function imap_fetchtext(\IMAP\Connection $imap, int $message_num, int $flags = 0) : string|false
 		{
-		return \PHPFUI\Imap2\Message::body($imap, $message_num, $flags);
+		return \PHPFUI\Imap2\Message::body($imap, "{$message_num}", $flags);
 		}
   }
 
@@ -529,7 +529,7 @@ if (! \function_exists('imap_headerinfo'))
   {
   function imap_headerinfo(\IMAP\Connection $imap, int $message_num, int $from_length = 0, int $subject_length = 0) : \stdClass|false
 		{
-		return \PHPFUI\Imap2\Message::headerInfo($imap, $message_num, $from_length, $subject_length);
+		return \PHPFUI\Imap2\Message::headerInfo($imap, "{$message_num}", $from_length, $subject_length);
 		}
   }
 
@@ -784,7 +784,7 @@ if (! \function_exists('imap_savebody'))
   {
   function imap_savebody(\IMAP\Connection $imap, mixed $file, int $message_num, string $section = '', int $flags = 0) : bool
 		{
-		return \PHPFUI\Imap2\Message::saveBody($imap, $file, $message_num, $section, $flags);
+		return \PHPFUI\Imap2\Message::saveBody($imap, $file, "{$message_num}", $section, $flags);
 		}
   }
 

@@ -27,7 +27,7 @@
   "require-dev": {
 		"roave/security-advisories": "dev-latest",
     "rector/rector": "^2.0",
-    "phpunit/phpunit": "<=12.0",
+    "phpunit/phpunit": "<13.0",
     "phpfui/phpunit-syntax-coverage": "^1.0",
     "friendsofphp/php-cs-fixer": "*",
     "phpstan/phpstan": "*"
