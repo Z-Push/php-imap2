@@ -118,7 +118,7 @@ class ImapTestCase extends TestCase
 		$this->altPassword = \getenv('IMAP_ALT_PASSWORD');
 		$this->altAccessToken = \getenv('IMAP_ALT_ACCESS_TOKEN');
 
-		$this->message = \file_get_contents('tests/fixtures/message.eml');
+		$this->message = \file_get_contents('Tests/fixtures/message.eml');
 	}
 
 	public function captureError() : void
