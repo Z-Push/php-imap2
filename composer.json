@@ -21,13 +21,13 @@
   ],
   "require": {
     "php": ">=8.2",
-    "zbateson/mail-mime-parser": "^3.0",
+    "zbateson/mail-mime-parser": "^4.0",
     "pear/auth_sasl": "^1.2"
   },
   "require-dev": {
 		"roave/security-advisories": "dev-latest",
     "rector/rector": "^2.0",
-    "phpunit/phpunit": "<13.0",
+    "phpunit/phpunit": "<14.0",
     "phpfui/phpunit-syntax-coverage": "^1.0",
     "friendsofphp/php-cs-fixer": "*",
     "phpstan/phpstan": "*"
