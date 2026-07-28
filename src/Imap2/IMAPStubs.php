@@ -719,7 +719,7 @@ if (! \function_exists('imap_reopen'))
 
 if (! \function_exists('imap_rfc822_parse_adrlist'))
   {
-  function imap_rfc822_parse_adrlist(string $string, string $default_hostname) : array
+  function imap_rfc822_parse_adrlist(string $string, ?string $default_hostname) : array
 		{
 		$message = \ZBateson\MailMimeParser\Message::from('To: ' . $string, false);
 

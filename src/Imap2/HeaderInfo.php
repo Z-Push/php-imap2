@@ -100,7 +100,7 @@ class HeaderInfo
 	/**
 	 * @return array<\stdClass>
 	 */
-	protected static function parseAddressList(string $address, string $defaultHost) : array
+	protected static function parseAddressList(string $address, ?string $defaultHost) : array
 		{
 		$addressList = \imap_rfc822_parse_adrlist($address, $defaultHost);
 		$customAddressList = [];

@@ -124,7 +124,7 @@ class MessageHeader
 	/**
 	 * Message References header
 	 */
-	public string $references;
+	public string $references = '';
 
 	/**
 	 * Message Reply-To header

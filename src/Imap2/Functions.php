@@ -29,7 +29,7 @@ class Functions
 		return 1;
 		}
 
-	public static function getAddressObjectList(array $addressList, string $defaultHost = 'UNKNOWN') : array
+	public static function getAddressObjectList(array $addressList, ?string $defaultHost = 'UNKNOWN') : array
 		{
 		$addressObjectList = [];
 
@@ -183,7 +183,7 @@ class Functions
 		return \implode(', ', $sanitizedAddress);
 		}
 
-	public static function writeAddressFromEnvelope(array $addressList) : string
+	public static function writeAddressFromEnvelope(?array $addressList) : string
 		{
 		if (empty($addressList))
 			{
