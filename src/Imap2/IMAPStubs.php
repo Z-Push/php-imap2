@@ -535,7 +535,7 @@ if (! \function_exists('imap_getsubscribed'))
   {
   function imap_getsubscribed(\IMAP\Connection $imap, string $reference, string $pattern) : array|false
 		{
-		return \PHPFUI\Imap2\Mailbox::getMailboxes($imap, $reference, $pattern);
+		return \PHPFUI\Imap2\Mailbox::getSubscribed($imap, $reference, $pattern);
 		}
   }
 
@@ -587,22 +587,22 @@ if (! \function_exists('imap_listscan'))
 		}
 	}
 
-//if (! \function_exists('imap_listsubscribed'))
-//  {
-//  function imap_listsubscribed(\IMAP\Connection $imap, string $reference, string $pattern) : array|false
-//		{
-//		return \PHPFUI\Imap2\Mailbox::listSubscribed($imap, $reference);
-//		}
-//  }
-//
-//if (! \function_exists('imap_lsub'))
-//  {
-//  function imap_lsub(\IMAP\Connection $imap, string $reference, string $pattern) : array|false
-//		{
-//		return \PHPFUI\Imap2\Mailbox::listSubscribed($imap, $reference);
-//		}
-//  }
-//
+if (! \function_exists('imap_listsubscribed'))
+  {
+  function imap_listsubscribed(\IMAP\Connection $imap, string $reference, string $pattern) : array|false
+		{
+		return \PHPFUI\Imap2\Mailbox::listSubscribed($imap, $reference, $pattern);
+		}
+  }
+
+if (! \function_exists('imap_lsub'))
+  {
+  function imap_lsub(\IMAP\Connection $imap, string $reference, string $pattern) : array|false
+		{
+		return \PHPFUI\Imap2\Mailbox::listSubscribed($imap, $reference, $pattern);
+		}
+  }
+
 //if (! \function_exists('imap_mail'))
 //  {
 //  function imap_mail(string $to, string $subject, string $message, ?string $additional_headers = null, ?string $cc = null, ?string $bcc = null, ?string $return_path = null) : bool
@@ -833,9 +833,11 @@ if (! \function_exists('imap_setacl'))
 
 if (! \function_exists('imap_setflag_full'))
   {
-  function imap_setflag_full(\IMAP\Connection $imap, string $sequence, string $flag, int $options = 0) : bool
+  function imap_setflag_full(\IMAP\Connection $imap, string $sequence, string $flag, int $options = 0) : true
 		{
-		return \PHPFUI\Imap2\Message::setFlagFull($imap, $sequence, $flag, $options);
+		\PHPFUI\Imap2\Message::setFlagFull($imap, $sequence, $flag, $options);
+
+		return true;
 		}
   }
 
