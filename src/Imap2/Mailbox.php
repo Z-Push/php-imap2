@@ -23,7 +23,15 @@ class Mailbox
 
 		$mailbox = empty($folderParts[1]) ? 'INBOX' : $folderParts[1];
 
-		$success = $client->append($mailbox, $message);
+		// $options holds the flags, like "\Seen \Draft"
+		$flags = \preg_split('/\s+/', \trim((string)$options), -1, PREG_SPLIT_NO_EMPTY) ?: [];
+
+		$success = $client->append($mailbox, $message, $flags, $internalDate ?: null);
+
+		if (! $success)
+			{
+			\PHPFUI\Imap2\Errors::appendError($client->error ?: "Can't append to mailbox {$mailbox}");
+			}
 
 		return (bool)$success;
 		}
@@ -266,11 +274,15 @@ class Mailbox
 			return false;
 			}
 
-		$returnStatus = [];
+		// like ext-imap, "flags" says which of the SA_* values were asked for
+		$returnStatus = ['flags' => $flags & SA_ALL];
 
 		foreach ($status as $key => $value)
 			{
-			$returnStatus[$statusKeys[$key]] = \is_numeric($value) ? (int)$value : $value;
+			if (isset($statusKeys[$key]))
+				{
+				$returnStatus[$statusKeys[$key]] = \is_numeric($value) ? (int)$value : $value;
+				}
 			}
 
 		return (object)$returnStatus;

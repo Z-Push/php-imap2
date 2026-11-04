@@ -629,13 +629,13 @@ if (! \function_exists('imap_mailboxmsginfo'))
 		}
   }
 
-//if (! \function_exists('imap_mime_header_decode'))
-//  {
-//  function imap_mime_header_decode(string $string) : array
-//		{
-//		throw new \Exception(__FUNCTION__ . ' is not implemented.');
-//		}
-//  }
+if (! \function_exists('imap_mime_header_decode'))
+  {
+  function imap_mime_header_decode(string $string) : array|false
+		{
+		return \PHPFUI\Imap2\Functions::mimeHeaderDecode($string);
+		}
+  }
 
 if (! \function_exists('imap_msgno'))
   {
@@ -903,9 +903,15 @@ if (! \function_exists('imap_unsubscribe'))
 
 if (! \function_exists('imap_utf7_decode'))
   {
-  function imap_utf7_decode(string $string) : string
+  function imap_utf7_decode(string $string) : string|false
 		{
-		return \mb_convert_encoding($string, 'UTF7-IMAP', 'ISO-8859-1');
+		// modified UTF-7 to ISO-8859-1, like ext-imap
+		if (! \mb_check_encoding($string, 'UTF7-IMAP'))
+			{
+			return false;
+			}
+
+		return \mb_convert_encoding($string, 'ISO-8859-1', 'UTF7-IMAP');
 		}
   }
 
@@ -913,7 +919,8 @@ if (! \function_exists('imap_utf7_encode'))
   {
   function imap_utf7_encode(string $string) : string
 		{
-		return \mb_convert_encoding($string, 'ISO-8859-1', 'UTF7-IMAP');
+		// ISO-8859-1 to modified UTF-7, like ext-imap
+		return \mb_convert_encoding($string, 'UTF7-IMAP', 'ISO-8859-1');
 		}
   }
 

@@ -165,6 +165,8 @@ class Connection
 
 		if (empty($success))
 			{
+			// like ext-imap, the server's reason is kept for imap_last_error()
+			\PHPFUI\Imap2\Errors::appendError($this->client->error ?: "Can't open mailbox {$this->currentMailbox}");
 			$this->rewriteMailbox('<no_mailbox>');
 			}
 		}

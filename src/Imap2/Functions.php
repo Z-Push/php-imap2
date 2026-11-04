@@ -110,6 +110,87 @@ class Functions
 		}
 
 	/**
+	 * Splits a header into plain text and RFC 2047 encoded words, like ext-imap's imap_mime_header_decode()
+	 *
+	 * Each part is an object with charset ("default" for plain text) and text. Encoded words are decoded from
+	 * Q or base64 but keep their charset, and whitespace between two encoded words is dropped.
+	 *
+	 * @return array<\stdClass>|false
+	 */
+	public static function mimeHeaderDecode(string $string) : array | false
+		{
+		$parts = [];
+		$offset = 0;
+		$end = \strlen($string);
+		$addPart = static function(string $charset, string $text) use (&$parts) : void
+			{
+			$parts[] = (object)['charset' => $charset, 'text' => $text];
+			};
+
+		while ($offset < $end)
+			{
+			$start = \strpos($string, '=?', $offset);
+
+			if (false === $start)
+				{
+				break;
+				}
+
+			if ($start !== $offset)
+				{
+				$addPart('default', \substr($string, $offset, $start - $offset));
+				}
+
+			$encodingMark = \strpos($string, '?', $start + 2);
+			$close = false === $encodingMark ? false : \strpos($string, '?=', $encodingMark + 3);
+
+			if (false === $close)
+				{
+				// no complete encoded word: the rest is plain text
+				$offset = $start;
+
+				break;
+				}
+
+			$charset = \substr($string, $start + 2, $encodingMark - $start - 2);
+			$encoding = $string[$encodingMark + 1] ?? '';
+			$text = \substr($string, $encodingMark + 3, $close - $encodingMark - 3);
+
+			if ('q' === $encoding || 'Q' === $encoding)
+				{
+				$decoded = \quoted_printable_decode(\str_replace('_', ' ', $text));
+				}
+			else
+				{
+				$decoded = \base64_decode($text);
+				}
+
+			if (false === $decoded)
+				{
+				return false;
+				}
+
+			$addPart($charset, $decoded);
+			$offset = $close + 2;
+
+			// whitespace between two encoded words is not part of the text
+			$skip = \strspn($string, " \t\r\n", $offset);
+
+			if ('=?' === \substr($string, $offset + $skip, 2))
+				{
+				$offset += $skip;
+				}
+			}
+
+		if ($offset < $end)
+			{
+			$addPart('default', \substr($string, $offset));
+			}
+
+		return $parts;
+		}
+
+	/**
 	 * Get name from full mailbox string.
 	 */
 	public static function getMailboxName(string $mailbox) : string
