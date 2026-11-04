@@ -23,8 +23,15 @@ class Mailbox
 
 		$mailbox = empty($folderParts[1]) ? 'INBOX' : $folderParts[1];
 
-		// $options holds the flags, like "\Seen \Draft"
-		$flags = \preg_split('/\s+/', \trim((string)$options), -1, PREG_SPLIT_NO_EMPTY) ?: [];
+		// $options holds the flags, like "\Seen \Draft". The client takes its own names for the flags it knows
+		// ("SEEN" for "\Seen"), so those are converted, and anything else is passed on as it is.
+		$flags = [];
+
+		foreach (\preg_split('/\s+/', \trim((string)$options), -1, PREG_SPLIT_NO_EMPTY) ?: [] as $flag)
+			{
+			$name = \array_search(\strtolower($flag), \array_map('strtolower', $client->flags), true);
+			$flags[] = false === $name ? $flag : $name;
+			}
 
 		$success = $client->append($mailbox, $message, $flags, $internalDate ?: null);
 
