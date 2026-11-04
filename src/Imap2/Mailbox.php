@@ -274,14 +274,14 @@ class Mailbox
 			return false;
 			}
 
-		// like ext-imap, "flags" says which of the SA_* values were asked for
+		// Like ext-imap: "flags" says which SA_* values were asked for, and only those are set, in this order
 		$returnStatus = ['flags' => $flags & SA_ALL];
 
-		foreach ($status as $key => $value)
+		foreach (['MESSAGES' => SA_MESSAGES, 'RECENT' => SA_RECENT, 'UNSEEN' => SA_UNSEEN, 'UIDNEXT' => SA_UIDNEXT, 'UIDVALIDITY' => SA_UIDVALIDITY] as $key => $flag)
 			{
-			if (isset($statusKeys[$key]))
+			if (($flags & $flag) && isset($status[$key]))
 				{
-				$returnStatus[$statusKeys[$key]] = \is_numeric($value) ? (int)$value : $value;
+				$returnStatus[$statusKeys[$key]] = \is_numeric($status[$key]) ? (int)$status[$key] : $status[$key];
 				}
 			}
 
