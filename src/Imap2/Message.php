@@ -429,21 +429,35 @@ class Message
 		{
 		$client = $imap->getClient();
 
-		$result = $client->search($imap->getMailboxName(), $criteria, (bool)($flags & SE_UID));
+		try
+			{
+			$program = \PHPFUI\Imap2\SearchCriteria::toImap((string)$criteria, $charset);
+			}
+		catch (\InvalidArgumentException $e)
+			{
+			\PHPFUI\Imap2\Errors::appendError($e->getMessage());
+
+			return false;
+			}
+
+		$result = $client->search($imap->getMailboxName(), $program, (bool)($flags & SE_UID));
 
 		if (empty($result->count()))
 			{
 			return false;
 			}
 
-		$messages = $result->get();
+		$messages = [];
 
-		foreach ($messages as &$message)
+		foreach ($result->get() as $message)
 			{
-			$message = \is_numeric($message) ? (int)$message : $message;
+			if (\ctype_digit((string)$message))
+				{
+				$messages[] = (int)$message;
+				}
 			}
 
-		return $messages;
+		return $messages ?: false;
 		}
 
 	/**
@@ -472,23 +486,49 @@ class Message
 
 	public static function sort(\IMAP\Connection $imap, $criteria, $reverse, int $flags = 0, $searchCriteria = null, ?string $charset = null) : array | false
 		{
-		$client = $imap->getClient();
+		$fields = [
+			SORTDATE => 'DATE',
+			SORTARRIVAL => 'ARRIVAL',
+			SORTFROM => 'FROM',
+			SORTSUBJECT => 'SUBJECT',
+			SORTTO => 'TO',
+			SORTCC => 'CC',
+			SORTSIZE => 'SIZE',
+		];
 
-		$result = $client->search($imap->getMailboxName(), $criteria, (bool)($flags & SE_UID));
-
-		if (empty($result->count()))
+		if (! isset($fields[$criteria]))
 			{
+			\PHPFUI\Imap2\Errors::appendError('Unknown sort criterion');
+
 			return false;
 			}
 
-		$messages = $result->get();
-
-		foreach ($messages as &$message)
+		try
 			{
-			$message = \is_numeric($message) ? (int)$message : $message;
+			$program = \PHPFUI\Imap2\SearchCriteria::toImap((string)$searchCriteria);
+			}
+		catch (\InvalidArgumentException $e)
+			{
+			\PHPFUI\Imap2\Errors::appendError($e->getMessage());
+
+			return false;
 			}
 
-		return $messages;
+		$client = $imap->getClient();
+
+		$result = $client->sort($imap->getMailboxName(), $fields[$criteria], 'ALL' === $program ? '' : $program, (bool)($flags & SE_UID), $charset ?: 'UTF-8');
+
+		$messages = [];
+
+		foreach ($result->get() as $message)
+			{
+			if (\ctype_digit((string)$message))
+				{
+				$messages[] = (int)$message;
+				}
+			}
+
+		return $reverse ? \array_reverse($messages) : $messages;
 		}
 
 	public static function uid(\IMAP\Connection $imap, int $messageNum) : int | string

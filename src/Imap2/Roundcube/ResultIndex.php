@@ -213,13 +213,13 @@ class ResultIndex
 			unset($data[$i]);
 		}
 
-		$data = \array_filter($data);
-
-		if (empty($data)) {
+		// Use only the SORT/SEARCH response found above. An empty result must not pick up a later
+		// unilateral response instead, such as the "* FLAGS (...)" Dovecot sends for a new keyword.
+		if (! isset($data[$i]) || '' === \trim($data[$i])) {
 			return;
 		}
 
-		$data = \array_shift($data);
+		$data = $data[$i];
 		$data = \trim($data);
 		$data = \preg_replace('/[\r\n]/', '', $data);
 		$data = \preg_replace('/\s+/', ' ', $data);
