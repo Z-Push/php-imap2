@@ -114,8 +114,7 @@ class ResultIndex
             unset($data[$i]);
         }
 
-        $data = array_filter($data);
-
+        // php-imap2: keep an empty SEARCH response, so a later unilateral response is not taken as the result
         if (empty($data)) {
             return;
         }

@@ -105,10 +105,17 @@ $c = replaceExact($c,
 $out['ImapClient.php'] = transform($c, $classMap, $version);
 
 // --- whole classes
-foreach (['rcube_message_header' => 'MessageHeader', 'rcube_result_index' => 'ResultIndex', 'rcube_result_thread' => 'ResultThread'] as $file => $class)
+foreach (['rcube_message_header' => 'MessageHeader', 'rcube_result_thread' => 'ResultThread'] as $file => $class)
 	{
 	$out["$class.php"] = transform(file_get_contents("$from/$file.php"), $classMap, $version);
 	}
+
+// --- ResultIndex: php-imap2 fix. array_filter() dropped an empty SEARCH response, so the next unilateral
+// response (the "* FLAGS (...)" Dovecot sends for a new keyword) was returned as the search result.
+$c = file_get_contents("$from/rcube_result_index.php");
+$c = replaceExact($c, "        \$data = array_filter(\$data);\n\n        if (empty(\$data)) {\n",
+	"        // php-imap2: keep an empty SEARCH response, so a later unilateral response is not taken as the result\n        if (empty(\$data)) {\n", 1, 'ResultIndex array_filter');
+$out['ResultIndex.php'] = transform($c, $classMap, $version);
 
 // --- Charset: whole class, without Roundcube's configuration and user language
 $c = file_get_contents("$from/rcube_charset.php");
