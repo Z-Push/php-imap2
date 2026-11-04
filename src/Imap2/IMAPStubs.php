@@ -909,13 +909,7 @@ if (! \function_exists('imap_utf7_decode'))
   {
   function imap_utf7_decode(string $string) : string|false
 		{
-		// modified UTF-7 to ISO-8859-1, like ext-imap
-		if (! \mb_check_encoding($string, 'UTF7-IMAP'))
-			{
-			return false;
-			}
-
-		return \mb_convert_encoding($string, 'ISO-8859-1', 'UTF7-IMAP');
+		return \PHPFUI\Imap2\Functions::utf7Decode($string);
 		}
   }
 
@@ -923,8 +917,7 @@ if (! \function_exists('imap_utf7_encode'))
   {
   function imap_utf7_encode(string $string) : string
 		{
-		// ISO-8859-1 to modified UTF-7, like ext-imap
-		return \mb_convert_encoding($string, 'UTF7-IMAP', 'ISO-8859-1');
+		return \PHPFUI\Imap2\Functions::utf7Encode($string);
 		}
   }
 

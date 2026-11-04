@@ -160,9 +160,14 @@ class Functions
 				{
 				$decoded = \quoted_printable_decode(\str_replace('_', ' ', $text));
 				}
+			elseif ('b' === $encoding || 'B' === $encoding)
+				{
+				$decoded = \base64_decode(\preg_replace('/\s+/', '', $text), true);
+				}
 			else
 				{
-				$decoded = \base64_decode($text);
+				// an unknown encoding is kept as it is
+				$decoded = $text;
 				}
 
 			if (false === $decoded)
@@ -188,6 +193,81 @@ class Functions
 			}
 
 		return $parts;
+		}
+
+	/**
+	 * imap_utf7_encode() as ext-imap does it: runs of bytes outside printable ASCII are base64 encoded as they are,
+	 * with "," for "/" and no padding, between "&" and "-", and "&" becomes "&-". The bytes are not converted to
+	 * UTF-16 first, so this is not the modified UTF-7 of RFC 3501 for non-ASCII text; use imap_utf8_to_mutf7() for that.
+	 */
+	public static function utf7Encode(string $string) : string
+		{
+		return (string)\preg_replace_callback('/&|[^\x20-\x7E]+/', static function(array $match) : string
+			{
+			if ('&' === $match[0])
+				{
+				return '&-';
+				}
+
+			return '&' . \strtr(\rtrim(\base64_encode($match[0]), '='), '/', ',') . '-';
+			}, $string);
+		}
+
+	/**
+	 * imap_utf7_decode() as ext-imap does it, the reverse of utf7Encode(); false when the input is not valid
+	 */
+	public static function utf7Decode(string $string) : string | false
+		{
+		if (\preg_match('/[^\x20-\x7E]/', $string))
+			{
+			return false;
+			}
+
+		$result = '';
+		$offset = 0;
+		$length = \strlen($string);
+
+		while ($offset < $length)
+			{
+			$amp = \strpos($string, '&', $offset);
+
+			if (false === $amp)
+				{
+				$result .= \substr($string, $offset);
+
+				break;
+				}
+
+			$result .= \substr($string, $offset, $amp - $offset);
+			$dash = \strpos($string, '-', $amp + 1);
+
+			if (false === $dash)
+				{
+				return false;
+				}
+
+			$encoded = \substr($string, $amp + 1, $dash - $amp - 1);
+
+			if ('' === $encoded)
+				{
+				$result .= '&';
+				}
+			else
+				{
+				$decoded = \preg_match('/^[A-Za-z0-9+,]+$/', $encoded) ? \base64_decode(\strtr($encoded, ',', '/'), true) : false;
+
+				if (false === $decoded || '' === $decoded)
+					{
+					return false;
+					}
+
+				$result .= $decoded;
+				}
+
+			$offset = $dash + 1;
+			}
+
+		return $result;
 		}
 
 	/**
