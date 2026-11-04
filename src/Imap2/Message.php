@@ -212,54 +212,45 @@ class Message
 			return false;
 			}
 
-		if ('*' != $sequence && \count($messages) < \PHPFUI\Imap2\Functions::expectedNumberOfMessages($sequence))
-			{
-			return false;
-			}
-
+		// Like ext-imap: messages that do not exist are left out, so a missing UID gives an empty array
 		$overview = [];
 
 		foreach ($messages as $message)
 			{
-			$messageEntry = (object)[
-				'subject' => $message->envelope[1],
-				'from' => \PHPFUI\Imap2\Functions::writeAddressFromEnvelope($message->envelope[2]),
-				'to' => $message->get('to'),
-				'date' => $message->envelope[0],
-				'message_id' => $message->envelope[9],
-				'references' => $message->references,
-				'in_reply_to' => $message->envelope[8],
-				'size' => $message->size,
-				'uid' => $message->uid,
-				'msgno' => $message->id,
-				'recent' => (int)($message->flags['RECENT'] ?? 0),
-				'flagged' => (int)($message->flags['FLAGGED'] ?? 0),
-				'answered' => (int)($message->flags['ANSWERED'] ?? 0),
-				'deleted' => (int)($message->flags['DELETED'] ?? 0),
-				'seen' => (int)($message->flags['SEEN'] ?? 0),
-				'draft' => (int)($message->flags['DRAFT'] ?? 0),
-				'udate' => \strtotime($message->internaldate),
+			$envelope = \is_array($message->envelope ?? null) ? $message->envelope : [];
+
+			// ext-imap only sets these properties when the message has a value for them
+			$optional = [
+				'subject' => $envelope[1] ?? null,
+				// ext-imap gives only the first address of From and To
+				'from' => \PHPFUI\Imap2\Functions::writeAddressFromEnvelope(\PHPFUI\Imap2\Functions::firstAddress($envelope[2] ?? null)),
+				'to' => \PHPFUI\Imap2\Functions::writeAddressFromEnvelope(\PHPFUI\Imap2\Functions::firstAddress($envelope[5] ?? null)),
+				'date' => $envelope[0] ?? null,
+				'message_id' => $envelope[9] ?? null,
+				'references' => $message->references ?? null,
+				'in_reply_to' => $envelope[8] ?? null,
 			];
 
-			if (empty($messageEntry->subject))
+			$messageEntry = new \stdClass();
+
+			foreach ($optional as $name => $value)
 				{
-				$messageEntry->subject = null;
+				if (null !== $value && '' !== $value)
+					{
+					$messageEntry->{$name} = $value;
+					}
 				}
 
-			if (empty($messageEntry->references))
-				{
-				$messageEntry->references = null;
-				}
-
-			if (empty($messageEntry->in_reply_to))
-				{
-				$messageEntry->in_reply_to = null;
-				}
-
-			if (empty($messageEntry->to))
-				{
-				$messageEntry->to = null;
-				}
+			$messageEntry->size = $message->size;
+			$messageEntry->uid = $message->uid;
+			$messageEntry->msgno = $message->id;
+			$messageEntry->recent = (int)($message->flags['RECENT'] ?? 0);
+			$messageEntry->flagged = (int)($message->flags['FLAGGED'] ?? 0);
+			$messageEntry->answered = (int)($message->flags['ANSWERED'] ?? 0);
+			$messageEntry->deleted = (int)($message->flags['DELETED'] ?? 0);
+			$messageEntry->seen = (int)($message->flags['SEEN'] ?? 0);
+			$messageEntry->draft = (int)($message->flags['DRAFT'] ?? 0);
+			$messageEntry->udate = \strtotime($message->internaldate);
 
 			$overview[] = $messageEntry;
 			}

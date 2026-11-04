@@ -183,6 +183,50 @@ class Functions
 		return \implode(', ', $sanitizedAddress);
 		}
 
+	/**
+	 * Characters that make c-client quote a display name (rspecials) or a mailbox (wspecials)
+	 */
+	private const PERSONAL_SPECIALS = '()<>@,;:\\".[]';
+
+	private const MAILBOX_SPECIALS = ' ()<>@,;:\\"[]';
+
+	/**
+	 * Returns the first entry of an envelope address list, or null when the list is empty or not a list
+	 *
+	 * @return ?array<array<mixed>>
+	 */
+	public static function firstAddress(mixed $addressList) : ?array
+		{
+		if (! \is_array($addressList) || empty($addressList) || ! \is_array(\reset($addressList)))
+			{
+			return null;
+			}
+
+		return [\reset($addressList)];
+		}
+
+	/**
+	 * Formats one address the way ext-imap's imap_rfc822_write_address() does
+	 */
+	public static function writeAddress(?string $mailbox, ?string $host, ?string $personal) : string
+		{
+		$address = self::quoteSpecials($mailbox ?? '', self::MAILBOX_SPECIALS) . '@' . ('' === ($host ?? '') ? '""' : $host);
+
+		if (null === $personal || '' === $personal)
+			{
+			return $address;
+			}
+
+		return self::quoteSpecials($personal, self::PERSONAL_SPECIALS) . ' <' . $address . '>';
+		}
+
+	/**
+	 * Formats an envelope address list (entries of [personal, route, mailbox, host]) like ext-imap
+	 *
+	 * A group start (mailbox set, host NIL) becomes "name: " and a group end (mailbox and host NIL) closes it with ";"
+	 *
+	 * @param ?array<mixed> $addressList
+	 */
 	public static function writeAddressFromEnvelope(?array $addressList) : string
 		{
 		if (empty($addressList))
@@ -190,19 +234,57 @@ class Functions
 			return '';
 			}
 
-		$sanitizedAddress = [];
+		$result = '';
+		$separator = '';
 
 		foreach ($addressList as $addressEntry)
 			{
-			$parsedAddressEntry = \imap_rfc822_write_address($addressEntry[2], $addressEntry[3], $addressEntry[0]);
-
-			if ('@""' == \substr($parsedAddressEntry, -3))
+			if (! \is_array($addressEntry))
 				{
-				$parsedAddressEntry = \substr($parsedAddressEntry, 0, \strlen($parsedAddressEntry) - 3) . ': ';
+				continue;
 				}
-			$sanitizedAddress[] = $parsedAddressEntry;
+
+			$personal = self::envelopeString($addressEntry[0] ?? null);
+			$mailbox = self::envelopeString($addressEntry[2] ?? null);
+			$host = self::envelopeString($addressEntry[3] ?? null);
+
+			if (null === $host)
+				{
+				if (null === $mailbox)
+					{
+					// end of group
+					$result .= ';';
+					$separator = ', ';
+					}
+				else
+					{
+					// start of group
+					$result .= $separator . $mailbox . ': ';
+					$separator = '';
+					}
+
+				continue;
+				}
+
+			$result .= $separator . self::writeAddress($mailbox, $host, $personal);
+			$separator = ', ';
 			}
 
-		return \implode(', ', $sanitizedAddress);
+		return $result;
+		}
+
+	private static function envelopeString(mixed $value) : ?string
+		{
+		return \is_string($value) ? $value : null;
+		}
+
+	private static function quoteSpecials(string $value, string $specials) : string
+		{
+		if ('' !== $value && false === \strpbrk($value, $specials))
+			{
+			return $value;
+			}
+
+		return '"' . \str_replace(['\\', '"'], ['\\\\', '\\"'], $value) . '"';
 		}
 	}
