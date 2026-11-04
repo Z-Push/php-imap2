@@ -65,27 +65,9 @@ class Message
 	/**
 	 * Clears flags on messages.
 	 */
-	public static function clearFlagFull(\IMAP\Connection $imap, array | string $sequence, $flag, $options = 0) : string | false
+	public static function clearFlagFull(\IMAP\Connection $imap, array | string $sequence, $flag, $options = 0) : bool
 		{
-		$client = $imap->getClient();
-
-		if (! ($options & ST_UID))
-			{
-			$messages = $client->fetch($imap->getMailboxName(), $sequence, false, ['UID']);
-
-			$uid = [];
-
-			foreach ($messages as $message)
-				{
-				$uid[] = $message->uid;
-				}
-
-			$sequence = \implode(',', $uid);
-			}
-
-		$client->unflag($imap->getMailboxName(), $sequence, \strtoupper(\substr($flag, 1)));
-
-		return false;
+		return self::modifyFlags($imap, $sequence, (string)$flag, (int)$options, false);
 		}
 
 	public static function delete(\IMAP\Connection $imap, array | string $messageNums, int $flags = 0)
@@ -451,23 +433,50 @@ class Message
 	 */
 	public static function setFlagFull(\IMAP\Connection $imap, array | string $sequence, string $flag, int $options = 0) : bool
 		{
+		return self::modifyFlags($imap, $sequence, $flag, $options, true);
+		}
+
+	/**
+	 * Sets or clears every flag in a space separated list, like "\Seen \Flagged $Forwarded"
+	 *
+	 * Each flag is stored as given, so system flags keep their backslash and keywords are not altered.
+	 * Like ext-imap the result does not depend on the server reply: failures are recorded for imap_errors().
+	 */
+	private static function modifyFlags(\IMAP\Connection $imap, array | string $sequence, string $flag, int $options, bool $set) : bool
+		{
 		$client = $imap->getClient();
+		$mailbox = $imap->getMailboxName();
 
 		if (! ($options & ST_UID))
 			{
-			$messages = $client->fetch($imap->getMailboxName(), $sequence, false, ['UID']);
+			$messages = $client->fetch($mailbox, $sequence, false, ['UID']);
 
 			$uid = [];
 
-			foreach ($messages as $message)
+			foreach ($messages ?: [] as $message)
 				{
 				$uid[] = $message->uid;
+				}
+
+			if (! $uid)
+				{
+				return true;
 				}
 
 			$sequence = \implode(',', $uid);
 			}
 
-		return $client->flag($imap->getMailboxName(), $sequence, \strtoupper(\substr($flag, 1)));
+		foreach (\preg_split('/\s+/', \trim($flag), -1, PREG_SPLIT_NO_EMPTY) ?: [] as $oneFlag)
+			{
+			$ok = $set ? $client->flag($mailbox, $sequence, $oneFlag) : $client->unflag($mailbox, $sequence, $oneFlag);
+
+			if (! $ok)
+				{
+				\PHPFUI\Imap2\Errors::appendError(($set ? 'Unable to set flag ' : 'Unable to clear flag ') . $oneFlag);
+				}
+			}
+
+		return true;
 		}
 
 	public static function sort(\IMAP\Connection $imap, $criteria, $reverse, int $flags = 0, $searchCriteria = null, ?string $charset = null) : array | false
