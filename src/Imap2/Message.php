@@ -531,11 +531,14 @@ class Message
 		return $reverse ? \array_reverse($messages) : $messages;
 		}
 
-	public static function uid(\IMAP\Connection $imap, int $messageNum) : int | string
+	/**
+	 * The UID of a message number, or false when there is no such message (as ext-imap)
+	 */
+	public static function uid(\IMAP\Connection $imap, int $messageNum) : int | false
 		{
-		$uid = self::idToUid($imap, $messageNum);
+		$uid = self::idToUid($imap, (string)$messageNum);
 
-		return \is_numeric($uid) ? (int)$uid : $uid;
+		return \ctype_digit($uid) ? (int)$uid : false;
 		}
 
 	/**

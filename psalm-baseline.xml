@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<files psalm-version="7.0.1@c3909231356b5fce30739ff0cf62bf50e6b5e7c7">
+  <file src="src/Imap2/Roundcube/ImapClient.php">
+    <InvalidArgument>
+      <code><![CDATA[$bytes]]></code>
+      <code><![CDATA[$bytes]]></code>
+      <code><![CDATA[$id]]></code>
+      <code><![CDATA[$options & self::COMMAND_ANONYMIZED]]></code>
+    </InvalidArgument>
+    <InvalidReturnStatement>
+      <code><![CDATA[$chunk]]></code>
+    </InvalidReturnStatement>
+    <NullArgument>
+      <code><![CDATA[null]]></code>
+      <code><![CDATA[null]]></code>
+      <code><![CDATA[null]]></code>
+    </NullArgument>
+    <NullReference>
+      <code><![CDATA[$prev]]></code>
+    </NullReference>
+    <TaintedHtml>
+      <code><![CDATA[echo "DEBUG: {$message}\n";]]></code>
+      <code><![CDATA[echo $chunk;]]></code>
+      <code><![CDATA[echo $result;]]></code>
+    </TaintedHtml>
+    <TaintedTextWithQuotes>
+      <code><![CDATA[echo "DEBUG: {$message}\n";]]></code>
+      <code><![CDATA[echo $chunk;]]></code>
+      <code><![CDATA[echo $result;]]></code>
+    </TaintedTextWithQuotes>
+  </file>
+</files>

@@ -637,7 +637,7 @@ if (! \function_exists('imap_mail_move'))
 
 if (! \function_exists('imap_mailboxmsginfo'))
   {
-  function imap_mailboxmsginfo(\IMAP\Connection $imap) : stdclass
+  function imap_mailboxmsginfo(\IMAP\Connection $imap) : \stdClass
 		{
 		return \PHPFUI\Imap2\Mailbox::mailboxMsgInfo($imap);
 		}
@@ -883,7 +883,7 @@ if (! \function_exists('imap_timeout'))
 
 if (! \function_exists('imap_uid'))
   {
-  function imap_uid(\IMAP\Connection $imap, int $message_num) : int
+  function imap_uid(\IMAP\Connection $imap, int $message_num) : int|false
 		{
 		return \PHPFUI\Imap2\Message::uid($imap, $message_num);
 		}
