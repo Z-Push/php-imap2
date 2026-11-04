@@ -2,6 +2,20 @@
 
 \define('IMAP2_CHARSET', 'UTF-8');
 
+// Roundcube 1.7 uses array_first(), which PHP has from 8.5
+if (! \function_exists('array_first'))
+	{
+	function array_first(array $array) : mixed
+		{
+		foreach ($array as $value)
+			{
+			return $value;
+			}
+
+		return null;
+		}
+	}
+
 if (! \defined('NIL')) {
 	\define('NIL', 0);
 }
