@@ -38,9 +38,9 @@ class MessageHeader
 	public $bodypart;
 
 	/**
-	 * IMAP bodystructure string
+	 * IMAP bodystructure, as parsed by ImapClient::tokenizeResponse()
 	 */
-	public string $bodystructure;
+	public array|string $bodystructure = [];
 
 	/**
 	 * Message additional recipients (Cc)

@@ -762,21 +762,9 @@ if (! \function_exists('imap_rfc822_parse_headers'))
 
 if (! \function_exists('imap_rfc822_write_address'))
   {
-  function imap_rfc822_write_address(string $mailbox, string $hostname, string $personal) : string
+  function imap_rfc822_write_address(?string $mailbox, ?string $hostname, ?string $personal) : string
 		{
-		$ret = $mailbox;
-
-		if (! \filter_var($mailbox, FILTER_VALIDATE_EMAIL) && ! empty($hostname))
-			{
-			$ret .= '@' . $hostname;
-			}
-
-		if (! empty($personal))
-			{
-			$ret = \mb_encode_mimeheader($personal, 'UTF-8') . ' <' . $ret . '>';
-			}
-
-		return $ret;
+		return \PHPFUI\Imap2\Functions::writeAddress($mailbox, $hostname, $personal);
 		}
   }
 
