@@ -4225,7 +4225,7 @@ class ImapClient
     /**
      * Clear internal cache of the current mailbox
      */
-    protected function clear_mailbox_cache()
+    public function clear_mailbox_cache()
     {
         $this->clear_status_cache($this->selected);
 

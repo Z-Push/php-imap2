@@ -56,8 +56,8 @@ class Message
 		{
 		$client = $imap->getClient();
 
+		// also clears the status cache of the selected mailbox
 		$client->clear_mailbox_cache();
-		$client->clear_status_cache();
 
 		return true;
 		}

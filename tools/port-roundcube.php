@@ -102,6 +102,8 @@ $c = replaceExact($c,
 $c = replaceExact($c,
 	"        return \$noresp ? \$code : [\$code, \$response];\n    }\n",
 	"        // return raw last line only (without command tag and result, response code kept)\n        if (\$line && (\$options & self::COMMAND_RAW_LASTLINE)) {\n            \$response = preg_replace(\"/^{\$tag} (OK|NO|BAD|BYE|PREAUTH)?\\\\s*/i\", '', trim(\$line));\n        }\n\n        return \$noresp ? \$code : [\$code, \$response];\n    }\n\n    /**\n     * Returns the last line of the most recent CREATE, with its response code (php-imap2)\n     *\n     * @return string\n     */\n    public function getRawLastLine()\n    {\n        return \$this->rawLastLine;\n    }\n", 1, 'execute return');
+// imap_gc() clears the client's cache
+$c = replaceExact($c, "    protected function clear_mailbox_cache()\n", "    public function clear_mailbox_cache()\n", 1, 'clear_mailbox_cache');
 $out['ImapClient.php'] = transform($c, $classMap, $version);
 
 // --- whole classes
@@ -130,13 +132,16 @@ $out['Mime.php'] = transform($c, $classMap, $version);
 
 // --- Utils: the date, string and connection helpers rcube_imap_generic uses
 $c = subsetClass("$from/rcube_utils.php", 'rcube_utils', ['explode_quoted_string', 'strtotime', 'clean_datestr', 'remove_subject_prefix', 'proxy_protocol_header']);
+// remove_subject_prefix() reads the reply and forward prefixes from Roundcube's configuration: use its defaults
+$c = replaceExact($c, "        \$config = rcmail::get_instance()->config;\n",
+	"        // php-imap2: no Roundcube configuration, so every setting takes Roundcube's default\n        \$config = new class {\n            public function get(\$name, \$default = null)\n            {\n                return \$default;\n            }\n        };\n", 1, 'remove_subject_prefix config');
 $c = preg_replace('/\}\s*$/', "\n    /**\n     * Returns the client IP address (php-imap2: without Roundcube's proxy_whitelist)\n     *\n     * @return ?string\n     */\n    public static function remote_addr()\n    {\n        return \$_SERVER['REMOTE_ADDR'] ?? null;\n    }\n}\n", $c);
 $out['Utils.php'] = transform($c, $classMap, $version);
 
 // anything left that only Roundcube's application provides
 foreach ($out as $name => $code)
 	{
-	if (preg_match_all('/\brcube(::|_[a-z_]+)/', $code, $m)) fail("$name still references " . implode(', ', array_unique($m[0])));
+	if (preg_match_all('/\b(rcube(::|_[a-z_]+)|rcmail\b)/', $code, $m)) fail("$name still references " . implode(', ', array_unique($m[0])));
 	file_put_contents("$to/$name", $code);
 	echo "wrote $name (" . substr_count($code, "\n") . " lines)\n";
 	}
