@@ -18,3 +18,5 @@ jobs:
         uses: docker://ghcr.io/psalm/psalm-github-actions:7.0.1
         with:
           php_version: '8.4'
+          # The image's PHP (8.4.18) is older than roave/security-advisories allows; Psalm only reads the code
+          composer_ignore_platform_reqs: true
