@@ -28,7 +28,8 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
-          extensions: dom, curl, libxml, mbstring, zip, intl, pdo_sqlite
+          # ":imap" turns ext-imap off: with it loaded the library's imap_* functions are skipped and ext-imap is tested instead
+          extensions: dom, curl, libxml, mbstring, zip, intl, pdo_sqlite, :imap
           coverage: none
 
       - name: Install dependencies
