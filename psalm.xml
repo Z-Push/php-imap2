@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<psalm
+    errorLevel="6"
+    resolveFromConfigFile="true"
+    findUnusedCode="false"
+    findUnusedBaselineEntry="true"
+    allFunctionsGlobal="true"
+    allConstantsGlobal="true"
+    errorBaseline="psalm-baseline.xml"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="https://getpsalm.org/schema/config"
+>
+    <projectFiles>
+        <directory name="src" />
+        <ignoreFiles>
+            <directory name="vendor" />
+        </ignoreFiles>
+    </projectFiles>
+    <!--
+        Psalm ships an empty IMAP\Connection for ext-imap. This library provides the real class, so load it as a
+        stub to take its place. Run Psalm on a PHP without ext-imap, as in CI, or its stubs are loaded as well.
+    -->
+    <stubs>
+        <file name="src/IMAP/Connection.php" preloadClasses="true" />
+    </stubs>
+</psalm>

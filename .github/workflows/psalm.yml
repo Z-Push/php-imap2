@@ -1,0 +1,22 @@
+name: Psalm
+
+on: [push, pull_request]
+
+permissions:
+  contents: read
+
+jobs:
+  psalm:
+    name: Psalm 7
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      # Psalm 7 runs taint analysis as part of every run. The image's PHP has no ext-imap, which psalm.xml relies on.
+      - name: Psalm
+        uses: docker://ghcr.io/psalm/psalm-github-actions:7.0.1
+        with:
+          php_version: '8.4'
+          # The image's PHP (8.4.18) is older than roave/security-advisories allows; Psalm only reads the code
+          composer_ignore_platform_reqs: true

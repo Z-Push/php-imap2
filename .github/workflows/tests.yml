@@ -28,7 +28,8 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
-          extensions: dom, curl, libxml, mbstring, zip, intl, pdo_sqlite
+          # ":imap" turns ext-imap off: with it loaded the library's imap_* functions are skipped and ext-imap is tested instead
+          extensions: dom, curl, libxml, mbstring, zip, intl, pdo_sqlite, :imap
           coverage: none
 
       - name: Install dependencies
@@ -38,3 +39,48 @@ jobs:
       - name: Execute tests
         run: vendor/bin/phpunit
 
+
+  server-tests:
+    # Tests/Server against Dovecot (2.3, as Ubuntu 24.04 ships it)
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: true
+      matrix:
+        php: [8.5, 8.4, 8.3]
+
+    name: Dovecot - PHP${{ matrix.php }}
+
+    env:
+      IMAP2_TEST_SERVER: '{127.0.0.1:10143/imap/notls}'
+      IMAP2_TEST_USER: test
+      IMAP2_TEST_PASSWORD: secret
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Start Dovecot
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q dovecot-imapd
+          sudo systemctl stop dovecot || true
+          MAIL_DIR="$RUNNER_TEMP/mail"
+          mkdir -p "$MAIL_DIR"
+          sudo mkdir -p /run/imap2-dovecot
+          sed -e "s|RUN_DIR|/run/imap2-dovecot|g" -e "s|MAIL_DIR|$MAIL_DIR|g" -e "s|MAIL_USER|$(id -un)|g" Tests/Server/dovecot.conf > "$RUNNER_TEMP/dovecot.conf"
+          sudo dovecot -c "$RUNNER_TEMP/dovecot.conf"
+          sleep 2
+          sudo cat "$MAIL_DIR/dovecot.log" || true
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: dom, curl, libxml, mbstring, zip, intl, pdo_sqlite, :imap
+          coverage: none
+
+      - name: Install dependencies
+        run: composer update --prefer-stable --prefer-dist --no-interaction
+
+      - name: Execute tests
+        run: vendor/bin/phpunit Tests/Server
