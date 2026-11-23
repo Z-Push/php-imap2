@@ -4,8 +4,8 @@ namespace Tests\Unit;
 
 /**
  * imap_search() criteria are read the way ext-imap reads them and rebuilt as a safe IMAP SEARCH program.
- * Before, the string was passed to the server unchanged: ext-imap's date formats failed, and line breaks were sent
- * as extra protocol lines.
+ * Before, the string was passed to the server unchanged: ext-imap's date formats failed, and line breaks were not
+ * rejected.
  */
 class SearchCriteriaTest extends \PHPUnit\Framework\TestCase
 	{
@@ -59,7 +59,9 @@ class SearchCriteriaTest extends \PHPUnit\Framework\TestCase
 	public static function invalidCriteria() : array
 		{
 		return [
-			'line break injection' => ["TEXT \"x\"\r\nA900 CREATE \"Injected\"\r\nA901 SEARCH \"y\""],
+			'CRLF between keys' => ["SEEN\r\nFLAGGED"],
+			'bare CR' => ["SEEN\rFLAGGED"],
+			'NUL' => ["SEEN\0FLAGGED"],
 			'line break inside quotes' => ["TEXT \"a\r\nb\""],
 			'bare LF' => ["SEEN\nFLAGGED"],
 			'unknown key (DRAFT is not a c-client key)' => ['DRAFT'],

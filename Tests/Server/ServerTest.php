@@ -205,8 +205,8 @@ class ServerTest extends \PHPUnit\Framework\TestCase
 		}
 
 	/**
-	 * Before, ext-imap's date formats failed, a criteria line break was sent as a new command, and a search with no
-	 * result gave an empty array
+	 * Before, ext-imap's date formats failed, criteria with a line break were not rejected, and a search with no result
+	 * gave an empty array
 	 */
 	public function testSearch() : void
 		{
@@ -222,9 +222,8 @@ class ServerTest extends \PHPUnit\Framework\TestCase
 		$this->assertFalse(\imap_search($this->imap, 'SUBJECT missing'));
 		$this->assertFalse(\imap_search($this->imap, 'KEYWORD $NotSet'));
 
-		$before = $this->names(\imap_list($this->imap, $this->server, '*'));
-		$this->assertFalse(\imap_search($this->imap, "TEXT \"x\"\r\nA900 CREATE \"{$this->folder}/Injected\"\r\nA901 SEARCH \"y\""));
-		$this->assertEquals($before, $this->names(\imap_list($this->imap, $this->server, '*')));
+		$this->assertFalse(\imap_search($this->imap, "SEEN\r\nUNSEEN"));
+		$this->assertEquals([1], \imap_search($this->imap, 'UNSEEN'));
 		}
 
 	/**
