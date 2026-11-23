@@ -6,7 +6,7 @@ jobs:
   php-tests:
     runs-on: ${{ matrix.os }}
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         php: [8.5, 8.4, 8.3]
         dependency-version: [prefer-stable]
@@ -34,6 +34,7 @@ jobs:
 
       - name: Install dependencies
         run: |
+          composer remove --dev --no-update roave/security-advisories
           composer update --${{ matrix.dependency-version }} --prefer-dist --no-interaction
 
       - name: Execute tests
@@ -80,7 +81,9 @@ jobs:
           coverage: none
 
       - name: Install dependencies
-        run: composer update --prefer-stable --prefer-dist --no-interaction
+        run: |
+          composer remove --dev --no-update roave/security-advisories
+          composer update --prefer-stable --prefer-dist --no-interaction
 
       - name: Execute tests
         run: vendor/bin/phpunit Tests/Server
