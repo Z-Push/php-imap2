@@ -102,9 +102,77 @@ $c = replaceExact($c,
 $c = replaceExact($c,
 	"        return \$noresp ? \$code : [\$code, \$response];\n    }\n",
 	"        // return raw last line only (without command tag and result, response code kept)\n        if (\$line && (\$options & self::COMMAND_RAW_LASTLINE)) {\n            \$response = preg_replace(\"/^{\$tag} (OK|NO|BAD|BYE|PREAUTH)?\\\\s*/i\", '', trim(\$line));\n        }\n\n        return \$noresp ? \$code : [\$code, \$response];\n    }\n\n    /**\n     * Returns the last line of the most recent CREATE, with its response code (php-imap2)\n     *\n     * @return string\n     */\n    public function getRawLastLine()\n    {\n        return \$this->rawLastLine;\n    }\n", 1, 'execute return');
-// search() sends its criteria as-is: reject line breaks, as phpfui/php-imap2 0.5.3 (04edb2f) does
-$c = replaceExact($c, "        \$esearch = empty(\$items) ? false : \$this->getCapability('ESEARCH');\n",
-	"        // criteria is sent as-is, so it must not contain line breaks (which would start a new command)\n        if (preg_match('/[\\r\\n\\0]/', \$criteria)) {\n            \$this->setError(self::ERROR_COMMAND, 'Invalid search criteria');\n\n            return new rcube_result_index(\$mailbox);\n        }\n\n        \$esearch = empty(\$items) ? false : \$this->getCapability('ESEARCH');\n", 1, 'search line breaks');
+// search() sends its criteria as-is: reject line breaks, as phpfui/php-imap2 0.5.3 (04edb2f) does, apart from the
+// CRLF of a literal ({length} CRLF data), which escape() uses for 8-bit text
+$c = replaceExact($c, "        \$esearch = empty(\$items) ? false : \$this->getCapability('ESEARCH');\n", <<<'PHP'
+        // criteria is sent as-is, so it must not contain line breaks (which would start a new command),
+        // apart from the one that ends a literal's {length}
+        if (!self::isSingleLine($criteria)) {
+            $this->setError(self::ERROR_COMMAND, 'Invalid search criteria');
+
+            return new rcube_result_index($mailbox);
+        }
+
+        $esearch = empty($items) ? false : $this->getCapability('ESEARCH');
+
+PHP, 1, 'search line breaks');
+$c = replaceExact($c, "    /**\n     * Escapes a string when it contains special characters (RFC3501)\n", <<<'PHP'
+    /**
+     * Checks that command arguments are a single line: no CR, LF or NUL, apart from the CRLF that ends a
+     * literal's {length}. That literal must start an argument (not be inside a quoted string), and its data
+     * must be exactly that length, without CR, LF or NUL (php-imap2)
+     *
+     * @param string $string IMAP command arguments
+     *
+     * @return bool
+     */
+    protected static function isSingleLine($string)
+    {
+        $length = strlen($string);
+        $quoted = false;
+
+        for ($i = 0; $i < $length; $i++) {
+            $char = $string[$i];
+
+            if ($char === "\r" || $char === "\n" || $char === "\0") {
+                return false;
+            }
+
+            if ($quoted) {
+                if ($char === '\\') {
+                    $i++;
+
+                    if ($i < $length && strpbrk($string[$i], "\r\n\0") !== false) {
+                        return false;
+                    }
+                } elseif ($char === '"') {
+                    $quoted = false;
+                }
+            } elseif ($char === '"') {
+                $quoted = true;
+            } elseif (
+                $char === '{' && ($i === 0 || $string[$i - 1] === ' ' || $string[$i - 1] === '(')
+                && preg_match('/\G\{([0-9]+)\}\r\n/', $string, $m, 0, $i)
+            ) {
+                $size = (int) $m[1];
+                $data = (string) substr($string, $i + strlen($m[0]), $size);
+
+                if (strlen($data) !== $size || strpbrk($data, "\r\n\0") !== false) {
+                    return false;
+                }
+
+                $i += strlen($m[0]) + $size - 1;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Escapes a string when it contains special characters (RFC3501)
+
+PHP, 1, 'isSingleLine');
+
 // imap_gc() clears the client's cache
 $c = replaceExact($c, "    protected function clear_mailbox_cache()\n", "    public function clear_mailbox_cache()\n", 1, 'clear_mailbox_cache');
 $out['ImapClient.php'] = transform($c, $classMap, $version);

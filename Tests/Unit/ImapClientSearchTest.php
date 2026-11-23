@@ -3,7 +3,8 @@
 namespace Tests\Unit;
 
 /**
- * ImapClient::search() refuses criteria that contain CR, LF or NUL, and sends nothing to the server for them
+ * ImapClient::search() refuses criteria that contain CR, LF or NUL, and sends nothing to the server for them. The one
+ * exception is the CRLF that ends a literal's {length}, which escape() uses for 8-bit text.
  */
 class ImapClientSearchTest extends \PHPUnit\Framework\TestCase
 	{
@@ -12,7 +13,7 @@ class ImapClientSearchTest extends \PHPUnit\Framework\TestCase
 		FakeImapStream::$written = '';
 		}
 
-	private function client() : \PHPFUI\Imap2\Roundcube\ImapClient
+	private function client(bool $literalPlus = false) : \PHPFUI\Imap2\Roundcube\ImapClient
 		{
 		if (! \in_array('fakeimap', \stream_get_wrappers()))
 			{
@@ -25,7 +26,7 @@ class ImapClientSearchTest extends \PHPUnit\Framework\TestCase
 		// a server without ESEARCH, whose capabilities are already known
 		$set('capability', ['IMAP4REV1']);
 		$set('capability_read', true);
-		$set('prefs', ['timeout' => 0]);
+		$set('prefs', ['timeout' => 0, 'literal+' => $literalPlus]);
 		// already selected, so search() goes straight to its SEARCH command
 		$client->selected = 'INBOX';
 		$client->data = ['EXISTS' => 2];
@@ -43,6 +44,12 @@ class ImapClientSearchTest extends \PHPUnit\Framework\TestCase
 			'LF' => ["SEEN\nFLAGGED"],
 			'CR' => ["SEEN\rFLAGGED"],
 			'NUL' => ["SEEN\0FLAGGED"],
+			'CRLF inside a quoted string' => ["SUBJECT \"a{1}\r\nb\""],
+			'escaped CR inside a quoted string' => ["SUBJECT \"a\\\r\""],
+			'literal longer than its data' => ["SUBJECT {9}\r\nab"],
+			'line break in literal data' => ["SUBJECT {3}\r\na\rb"],
+			'literal not starting an argument' => ["SUBJECT a{1}\r\nb"],
+			'line break after a literal' => ["SUBJECT {1}\r\na\r\nSEEN"],
 		];
 		}
 
@@ -65,6 +72,14 @@ class ImapClientSearchTest extends \PHPUnit\Framework\TestCase
 		$result = $this->client()->search('INBOX', 'SEEN FLAGGED');
 
 		$this->assertStringContainsString(' SEARCH SEEN FLAGGED', FakeImapStream::$written);
+		$this->assertEquals(['2', '4'], $result->get());
+		}
+
+	public function testLiteralIsSent() : void
+		{
+		$result = $this->client(true)->search('INBOX', "SUBJECT {5}\r\ncafé SEEN");
+
+		$this->assertStringContainsString(" SEARCH SUBJECT {5+}\r\ncafé SEEN\r\n", FakeImapStream::$written);
 		$this->assertEquals(['2', '4'], $result->get());
 		}
 	}

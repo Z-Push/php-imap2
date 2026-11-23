@@ -2009,8 +2009,9 @@ class ImapClient
             $items = ['ALL'];
         }
 
-        // criteria is sent as-is, so it must not contain line breaks (which would start a new command)
-        if (preg_match('/[\r\n\0]/', $criteria)) {
+        // criteria is sent as-is, so it must not contain line breaks (which would start a new command),
+        // apart from the one that ends a literal's {length}
+        if (!self::isSingleLine($criteria)) {
             $this->setError(self::ERROR_COMMAND, 'Invalid search criteria');
 
             return new ResultIndex($mailbox);
@@ -4284,6 +4285,57 @@ class ImapClient
         if ($trusted) {
             $this->capability_read = true;
         }
+    }
+
+    /**
+     * Checks that command arguments are a single line: no CR, LF or NUL, apart from the CRLF that ends a
+     * literal's {length}. That literal must start an argument (not be inside a quoted string), and its data
+     * must be exactly that length, without CR, LF or NUL (php-imap2)
+     *
+     * @param string $string IMAP command arguments
+     *
+     * @return bool
+     */
+    protected static function isSingleLine($string)
+    {
+        $length = strlen($string);
+        $quoted = false;
+
+        for ($i = 0; $i < $length; $i++) {
+            $char = $string[$i];
+
+            if ($char === "\r" || $char === "\n" || $char === "\0") {
+                return false;
+            }
+
+            if ($quoted) {
+                if ($char === '\\') {
+                    $i++;
+
+                    if ($i < $length && strpbrk($string[$i], "\r\n\0") !== false) {
+                        return false;
+                    }
+                } elseif ($char === '"') {
+                    $quoted = false;
+                }
+            } elseif ($char === '"') {
+                $quoted = true;
+            } elseif (
+                $char === '{' && ($i === 0 || $string[$i - 1] === ' ' || $string[$i - 1] === '(')
+                && preg_match('/\G\{([0-9]+)\}\r\n/', $string, $m, 0, $i)
+            ) {
+                $size = (int) $m[1];
+                $data = (string) substr($string, $i + strlen($m[0]), $size);
+
+                if (strlen($data) !== $size || strpbrk($data, "\r\n\0") !== false) {
+                    return false;
+                }
+
+                $i += strlen($m[0]) + $size - 1;
+            }
+        }
+
+        return true;
     }
 
     /**
