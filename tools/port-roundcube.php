@@ -102,6 +102,9 @@ $c = replaceExact($c,
 $c = replaceExact($c,
 	"        return \$noresp ? \$code : [\$code, \$response];\n    }\n",
 	"        // return raw last line only (without command tag and result, response code kept)\n        if (\$line && (\$options & self::COMMAND_RAW_LASTLINE)) {\n            \$response = preg_replace(\"/^{\$tag} (OK|NO|BAD|BYE|PREAUTH)?\\\\s*/i\", '', trim(\$line));\n        }\n\n        return \$noresp ? \$code : [\$code, \$response];\n    }\n\n    /**\n     * Returns the last line of the most recent CREATE, with its response code (php-imap2)\n     *\n     * @return string\n     */\n    public function getRawLastLine()\n    {\n        return \$this->rawLastLine;\n    }\n", 1, 'execute return');
+// search() sends its criteria as-is: reject line breaks, as phpfui/php-imap2 0.5.3 (04edb2f) does
+$c = replaceExact($c, "        \$esearch = empty(\$items) ? false : \$this->getCapability('ESEARCH');\n",
+	"        // criteria is sent as-is, so it must not contain line breaks (which would start a new command)\n        if (preg_match('/[\\r\\n\\0]/', \$criteria)) {\n            \$this->setError(self::ERROR_COMMAND, 'Invalid search criteria');\n\n            return new rcube_result_index(\$mailbox);\n        }\n\n        \$esearch = empty(\$items) ? false : \$this->getCapability('ESEARCH');\n", 1, 'search line breaks');
 // imap_gc() clears the client's cache
 $c = replaceExact($c, "    protected function clear_mailbox_cache()\n", "    public function clear_mailbox_cache()\n", 1, 'clear_mailbox_cache');
 $out['ImapClient.php'] = transform($c, $classMap, $version);
